@@ -11,11 +11,14 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import at.fhhagenberg.me.ada.speedrunmobile.core.Game
 import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,9 +30,17 @@ import kotlinx.coroutines.withContext
 fun Home(names: List<String>) {
     val coroutineScope = rememberCoroutineScope()
 
+    var games = remember { mutableStateListOf<Game>()}
+
     coroutineScope.launch {
         withContext(Dispatchers.IO) {
-            val games = SpeedrunProxyFactory.createProxy().getGames(page = 0)
+            val proxyGames = SpeedrunProxyFactory.createProxy().getGames(page = 0)
+
+            withContext(Dispatchers.Main) {
+                if(proxyGames != null){
+                    games.addAll(proxyGames)
+                }
+            }
         }
     }
 
@@ -40,13 +51,12 @@ fun Home(names: List<String>) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(items = names) { name ->
+            items(items = games) { game ->
                 Box(modifier = Modifier
-                    .size(60.dp)
                     .background(Color.Cyan)
                     .padding(16.dp),
                     contentAlignment = Alignment.Center) {
-                    Text(text = name)
+                    game.names?.international?.let { Text(text = it) }
                 }
             }
         }

@@ -1,8 +1,11 @@
 package at.fhhagenberg.me.ada.speedrunmobile.network
 
+import at.fhhagenberg.me.ada.speedrunmobile.core.Game
+import at.fhhagenberg.me.ada.speedrunmobile.core.Run
+import at.fhhagenberg.me.ada.speedrunmobile.core.Runner
+
 interface SpeedrunProxy {
-    suspend fun getGames(filter: String? = null, page: Int): MutableCollection<Any>?
-    suspend fun getRuns(gameId: String)
-    suspend fun getRun(runId: String)
-    suspend fun getRunner(runnerId: String)
+    suspend fun getGames(filter: String? = null, page: Int): MutableCollection<Game>?
+    suspend fun getRuns(gameId: String, categoryId: String): MutableCollection<Run>?
+    suspend fun getRunner(runnerId: String): Runner?
 }
