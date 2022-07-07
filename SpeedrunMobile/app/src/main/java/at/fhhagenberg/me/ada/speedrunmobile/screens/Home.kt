@@ -27,7 +27,7 @@ import kotlinx.coroutines.withContext
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Home(names: List<String>) {
+fun Home() {
     val coroutineScope = rememberCoroutineScope()
 
     var games = remember { mutableStateListOf<Game>()}

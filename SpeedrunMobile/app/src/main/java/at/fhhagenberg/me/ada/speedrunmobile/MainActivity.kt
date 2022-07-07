@@ -50,37 +50,7 @@ fun NavigationHost(navController: NavHostController) {
         startDestination = NavRoutes.Home.route,
     ) {
         composable(NavRoutes.Home.route) {
-            val names = listOf("Kunal Burrows",
-                "Amal Rowley",
-                "Sharmin Tanner",
-                "Sana Whitney",
-                "Howard Fitzpatrick",
-                "Sumaiya Cannon",
-                "Ross Frazier",
-                "Izaac Mills",
-                "Wesley Nichols",
-                "Areeba Saunders",
-                "Kyron Whitley",
-                "Sheikh Ware",
-                "Misbah Huerta",
-                "Tyreese Mccartney",
-                "Stella Mcguire",
-                "Leland Bauer",
-                "Hilary Green",
-                "Faizah Kaye",
-                "Hanna Cherry",
-                "Franklin Monroe",
-                "Emmett Brown",
-                "Maverick Denton",
-                "Alessandra Benson",
-                "Julie Thomas",
-                "Michael Griffin",
-                "Yusuf Whitehouse",
-                "Tamera Battle",
-                "Keenan Knott",
-                "Alaya Wells",
-                "Nabil Bray")
-            Home(names = names)
+            Home()
         }
 
         composable(NavRoutes.Favorites.route) {

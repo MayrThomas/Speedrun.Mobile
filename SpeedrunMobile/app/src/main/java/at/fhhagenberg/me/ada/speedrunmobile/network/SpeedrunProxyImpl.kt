@@ -175,7 +175,7 @@ class SpeedrunProxyImpl : SpeedrunProxy {
         var twitch: Proxy_Link? = null
         var youtube: Proxy_Link? = null
         var twitter: Proxy_Link? = null
-        var location: Proxy_Country? = null
+        var location: Proxy_Location? = null
         var assets: Proxy_Assets? = null
 
         fun toRunner() : Runner {
@@ -186,7 +186,7 @@ class SpeedrunProxyImpl : SpeedrunProxy {
                 twitch?.uri,
                 youtube?.uri,
                 twitter?.uri,
-                location?.code,
+                location?.country?.code,
                 assets?.icon?.uri
             )
         }
@@ -194,6 +194,10 @@ class SpeedrunProxyImpl : SpeedrunProxy {
 
     private class Proxy_Country {
         var code: String? = null
+    }
+
+    private class Proxy_Location {
+        var country: Proxy_Country? = null
     }
 
     private class Proxy_Assets {
