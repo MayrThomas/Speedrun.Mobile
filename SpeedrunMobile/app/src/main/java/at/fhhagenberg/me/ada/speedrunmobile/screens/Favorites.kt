@@ -1,8 +1,6 @@
 package at.fhhagenberg.me.ada.speedrunmobile.screens
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -15,7 +13,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun Favorites() {
 
-    Box(
+    Column {
+        GamesBody(modifier = Modifier.padding(top = 16.dp))
+    }
+
+   /* Box(
         modifier = Modifier.fillMaxSize()
     ) {
         Icon(
@@ -25,5 +27,5 @@ fun Favorites() {
             modifier = Modifier.size(150.dp)
                 .align(Alignment.Center)
         )
-    }
+    }*/
 }

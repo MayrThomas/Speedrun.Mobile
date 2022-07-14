@@ -1,14 +1,23 @@
 package at.fhhagenberg.me.ada.speedrunmobile
 
+import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -32,14 +41,15 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
 
     Scaffold(
-        topBar = { TopAppBar(title = {Text("Bottom Navigation Demo")})  },
+        topBar = { TopAppBar(title = { Text("Speedrun.Mobile") }) },
         content = { NavigationHost(navController = navController) },
-        bottomBar = { BottomNavigationBar(navController = navController)}
+        bottomBar = { BottomNavigationBar(navController = navController) }
     )
 }
 
@@ -62,9 +72,9 @@ fun NavigationHost(navController: NavHostController) {
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
 
-    BottomNavigation {
+    BottomNavigation(modifier = Modifier.height(60.dp)) {
         val backStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute  = backStackEntry?.destination?.route
+        val currentRoute = backStackEntry?.destination?.route
 
         NavBarItems.BarItems.forEach { navItem ->
 
@@ -92,15 +102,60 @@ fun BottomNavigationBar(navController: NavHostController) {
     }
 }
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     SpeedrunMobileTheme {
-        Greeting("Android")
+        MainScreen()
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun DefaultPreviewDark() {
+    SpeedrunMobileTheme {
+        MainScreen()
+    }
+}
+
+@Composable
+fun SearchBar(
+    modifier: Modifier = Modifier,
+) {
+    TextField(
+        value = "",
+        onValueChange = {},
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null
+            )
+        },
+        colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = MaterialTheme.colors.surface
+        ),
+        placeholder = {
+            Text(stringResource(R.string.search), style = MaterialTheme.typography.h6)
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+    )
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+fun SearchBarPreview() {
+    SpeedrunMobileTheme {
+        SearchBar()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SearchBarPreviewLight() {
+    SpeedrunMobileTheme {
+        SearchBar()
     }
 }

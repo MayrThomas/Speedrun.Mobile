@@ -1,6 +1,7 @@
 package at.fhhagenberg.me.ada.speedrunmobile.network
 
 import at.fhhagenberg.me.ada.speedrunmobile.core.*
+import com.google.gson.annotations.SerializedName
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -68,9 +69,10 @@ class SpeedrunProxyImpl : SpeedrunProxy {
         var id: String? = null
         var names: Proxy_GameNames? = null
         var released: Int? = null
+        var assets : Proxy_GameAssets? = null
 
         fun toGame() : Game{
-            return Game(id, released, names?.toGameNames())
+            return Game(id, released, names?.toGameNames(), assets?.cover_medium?.uri)
         }
     }
 
@@ -96,6 +98,9 @@ class SpeedrunProxyImpl : SpeedrunProxy {
         var data: List<Proxy_Category>? = null
     }
 
+    private class Proxy_Logo {
+        val uri: String? = null
+    }
     private class Proxy_Category {
         var id: String? = null
         var name: String? = null
@@ -202,5 +207,10 @@ class SpeedrunProxyImpl : SpeedrunProxy {
 
     private class Proxy_Assets {
         var icon: Proxy_Link? = null
+    }
+
+    private class Proxy_GameAssets {
+        @SerializedName("cover-medium")
+        var cover_medium: Proxy_Link? = null
     }
 }
