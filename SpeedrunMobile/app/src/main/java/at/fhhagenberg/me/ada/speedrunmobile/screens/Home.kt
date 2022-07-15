@@ -2,6 +2,7 @@ package at.fhhagenberg.me.ada.speedrunmobile.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -28,7 +29,7 @@ import kotlinx.coroutines.withContext
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun Home() {
+fun Home(onGameClicked: (String) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
 
     var games = remember { mutableStateListOf<Game>() }
@@ -49,7 +50,9 @@ fun Home() {
         Spacer(modifier = Modifier.height(16.dp))
         SearchBar(Modifier.padding(horizontal = 16.dp))
 
-        GamesBody(modifier = Modifier.padding(top = 16.dp), data = games)
+        GamesBody(modifier = Modifier.padding(top = 16.dp),
+            data = games,
+            onGameClicked = onGameClicked)
 
     }
 }
@@ -57,7 +60,7 @@ fun Home() {
 @Composable
 fun GamesBody(
     modifier: Modifier = Modifier,
-    onGameClicked: () -> Unit = {},
+    onGameClicked: (String) -> Unit,
     data: List<Game> = listOf(),
 ) {
     LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 150.dp),
@@ -66,18 +69,19 @@ fun GamesBody(
         verticalArrangement = Arrangement.spacedBy(space = 8.dp),
         modifier = modifier) {
         items(data) { item ->
-            Game(data = item)
+            Game(data = item, onGameClicked = onGameClicked)
         }
     }
 }
 
 @Composable
-fun Game(modifier: Modifier = Modifier, data: Game?) {
+fun Game(modifier: Modifier = Modifier, data: Game?, onGameClicked: (String) -> Unit) {
     var favourite by rememberSaveable { mutableStateOf(false) }
     Surface(color = MaterialTheme.colors.primary,
         shape = MaterialTheme.shapes.large,
         border = BorderStroke(Dp.Hairline,
-            HeaderGreen)) {
+            HeaderGreen),
+        modifier = modifier.clickable { onGameClicked(data?.id!!) }) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally) {
             Row(horizontalArrangement = Arrangement.Start) {

@@ -11,21 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Favorites() {
-
+fun Favorites(onGameClicked: (String) -> Unit) {
     Column {
-        GamesBody(modifier = Modifier.padding(top = 16.dp))
+        GamesBody(modifier = Modifier.padding(top = 16.dp), onGameClicked = onGameClicked)
     }
-
-   /* Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Icon(
-            imageVector = Icons.Filled.Favorite,
-            contentDescription = "favorites",
-            tint = Color.Blue,
-            modifier = Modifier.size(150.dp)
-                .align(Alignment.Center)
-        )
-    }*/
 }

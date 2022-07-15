@@ -20,13 +20,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import at.fhhagenberg.me.ada.speedrunmobile.core.Game
 import at.fhhagenberg.me.ada.speedrunmobile.navigation.NavBarItems
 import at.fhhagenberg.me.ada.speedrunmobile.navigation.NavRoutes
 import at.fhhagenberg.me.ada.speedrunmobile.screens.Favorites
+import at.fhhagenberg.me.ada.speedrunmobile.screens.GameScreen
 import at.fhhagenberg.me.ada.speedrunmobile.screens.Home
 import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.SpeedrunMobileTheme
 
@@ -60,19 +64,39 @@ fun NavigationHost(navController: NavHostController) {
         startDestination = NavRoutes.Home.route,
     ) {
         composable(NavRoutes.Home.route) {
-            Home()
+            Home(onGameClicked = { gameID ->
+                navigateToGame(navController, gameID)
+            })
         }
 
         composable(NavRoutes.Favorites.route) {
-            Favorites()
+            Favorites(onGameClicked = { gameID ->
+                navigateToGame(navController, gameID)
+            })
+        }
+        val gameName = NavRoutes.Games.route
+        composable(route = "$gameName/{id}",
+            arguments = listOf(
+                navArgument("id") {
+                    type = NavType.StringType
+                }
+            )) { entry ->
+            val gameID = entry.arguments?.getString("id")
+            val game = Game(gameID, null, null, null) //TODO: Fetch game according to id
+            GameScreen(game)
         }
     }
+}
+
+private fun navigateToGame(navController: NavHostController, gameID: String) {
+    navController.navigate("${NavRoutes.Games.route}/$gameID")
 }
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
 
-    BottomNavigation(modifier = Modifier.height(60.dp)) {
+    BottomNavigation(modifier = Modifier.height(60.dp),
+        backgroundColor = MaterialTheme.colors.secondary) {
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
 
