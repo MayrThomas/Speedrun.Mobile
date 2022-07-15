@@ -32,7 +32,7 @@ import kotlinx.coroutines.withContext
 fun Home(onGameClicked: (String) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
 
-    var games = remember { mutableStateListOf<Game>() }
+    val games = remember { mutableStateListOf<Game>() }
 
     coroutineScope.launch {
         withContext(Dispatchers.IO) {

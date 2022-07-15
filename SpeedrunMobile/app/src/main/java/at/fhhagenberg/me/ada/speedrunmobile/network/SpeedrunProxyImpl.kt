@@ -20,7 +20,7 @@ class SpeedrunProxyImpl : SpeedrunProxy {
         .create(Proxy::class.java)
 
     override suspend fun getGames(filter: String?, page: Int): MutableCollection<Game>? {
-        val gamesObject = proxy.getGames(filter, page*20).execute().body() ?: return null
+        val gamesObject = proxy.getGames(filter, page * 20).execute().body() ?: return null
         val gamesList = gamesObject.data?.map {
             it.toGame()
         }?.toMutableList()
@@ -37,13 +37,27 @@ class SpeedrunProxyImpl : SpeedrunProxy {
         return gamesList
     }
 
+    override suspend fun getGame(gameId: String): Game? {
+        val gamesObject = proxy.getGame(gameId).execute().body() ?: return null
+        val game = gamesObject.data?.toGame()
+        if(game?.id != null) {
+            val categories = proxy.getCategoriesOfGame(game.id).execute().body()
+            if (categories != null) {
+                game.categories = categories.data?.map {
+                    it.toCategory()
+                }
+            }
+        }
+        return game
+    }
+
     override suspend fun getRuns(gameId: String, categoryId: String): MutableCollection<Run>? {
-        val leaderboardObject = proxy.getRuns(gameId,categoryId).execute().body() ?: return null
+        val leaderboardObject = proxy.getRuns(gameId, categoryId).execute().body() ?: return null
 
         return leaderboardObject.data?.runs?.map { it.toRun() }?.toMutableList()
     }
 
-    override suspend fun getRunner(runnerId: String) : Runner? {
+    override suspend fun getRunner(runnerId: String): Runner? {
         val userObject = proxy.getRunner(runnerId).execute().body() ?: return null
 
         return userObject.data?.toRunner()!!
@@ -53,13 +67,22 @@ class SpeedrunProxyImpl : SpeedrunProxy {
     //TODO("change return value of network calls to objects that contain a list of the actual type")
     private interface Proxy {
         @GET("games")
-        fun getGames(@Query("name") name: String?, @Query("offset") offset: Int): Call<Proxy_GameObject>
+        fun getGames(
+            @Query("name") name: String?,
+            @Query("offset") offset: Int,
+        ): Call<Proxy_GameObjects>
+
+        @GET("games/{id}")
+        fun getGame(@Path("id") gameId: String?): Call<Proxy_GameObject>
 
         @GET("games/{id}/categories")
         fun getCategoriesOfGame(@Path("id") gameId: String?): Call<Proxy_CategoryObject>
 
         @GET("leaderboards/{game}/category/{category}")
-        fun getRuns(@Path("game") gameId: String, @Path("category") categoryId: String): Call<Proxy_LeaderboardObject>
+        fun getRuns(
+            @Path("game") gameId: String,
+            @Path("category") categoryId: String,
+        ): Call<Proxy_LeaderboardObject>
 
         @GET("users/{id}")
         fun getRunner(@Path("id") runner: String): Call<Proxy_UserObject>
@@ -69,15 +92,19 @@ class SpeedrunProxyImpl : SpeedrunProxy {
         var id: String? = null
         var names: Proxy_GameNames? = null
         var released: Int? = null
-        var assets : Proxy_GameAssets? = null
+        var assets: Proxy_GameAssets? = null
 
-        fun toGame() : Game{
+        fun toGame(): Game {
             return Game(id, released, names?.toGameNames(), assets?.cover_medium?.uri)
         }
     }
 
-    private class Proxy_GameObject {
+    private class Proxy_GameObjects {
         var data: List<Proxy_Game>? = null
+    }
+
+    private class Proxy_GameObject{
+        var data: Proxy_Game? = null
     }
 
     private class Proxy_GameNames {
@@ -85,12 +112,12 @@ class SpeedrunProxyImpl : SpeedrunProxy {
         val japanese: String? = null
         val twitch: String? = null
 
-        fun toGameNames() : GameNames {
+        fun toGameNames(): GameNames {
             return GameNames(international, japanese, twitch)
         }
 
-        fun toListOfNames() : List<String?> {
-            return listOf(international, japanese,twitch)
+        fun toListOfNames(): List<String?> {
+            return listOf(international, japanese, twitch)
         }
     }
 
@@ -101,6 +128,7 @@ class SpeedrunProxyImpl : SpeedrunProxy {
     private class Proxy_Logo {
         val uri: String? = null
     }
+
     private class Proxy_Category {
         var id: String? = null
         var name: String? = null
@@ -123,13 +151,13 @@ class SpeedrunProxyImpl : SpeedrunProxy {
         var place: Int? = null
         var run: Proxy_Run? = null
 
-        fun toRun() : Run {
+        fun toRun(): Run {
             return Run(
                 run?.id,
                 place,
                 run?.comment,
                 run?.videos?.toURIList(),
-                run?.players?.map { it.id!! },
+                run?.players?.map { it.id },
                 run?.submitted,
                 run?.times
             )
@@ -154,14 +182,14 @@ class SpeedrunProxyImpl : SpeedrunProxy {
     private class Proxy_Video {
         var links: List<Proxy_Link>? = null
 
-        fun toURIList() : List<String?>? {
+        fun toURIList(): List<String?>? {
             return links?.map {
                 it.uri
             }?.toList()
         }
     }
 
-    private class Proxy_Link{
+    private class Proxy_Link {
         var uri: String? = null
     }
 
@@ -183,7 +211,7 @@ class SpeedrunProxyImpl : SpeedrunProxy {
         var location: Proxy_Location? = null
         var assets: Proxy_Assets? = null
 
-        fun toRunner() : Runner {
+        fun toRunner(): Runner {
             return Runner(
                 id,
                 names?.toListOfNames(),
