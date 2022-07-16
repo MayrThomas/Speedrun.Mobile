@@ -22,6 +22,7 @@ import at.fhhagenberg.me.ada.speedrunmobile.R
 import at.fhhagenberg.me.ada.speedrunmobile.core.Category
 import at.fhhagenberg.me.ada.speedrunmobile.core.Game
 import at.fhhagenberg.me.ada.speedrunmobile.core.Run
+import at.fhhagenberg.me.ada.speedrunmobile.core.UNDEFINED_CATEGORY
 import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
 import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.SpeedrunMobileTheme
 import kotlinx.coroutines.Dispatchers
@@ -55,14 +56,16 @@ fun GameScreen(
         withContext(Dispatchers.IO) {
             val proxyCats = SpeedrunProxyFactory.createProxy().getGame(gameID!!)?.categories
             val catID =
-                if (currentCategoryID.equals("a") && proxyCats?.isNotEmpty() == true) proxyCats.first().id else currentCategoryID
+                if (currentCategoryID.equals(UNDEFINED_CATEGORY) && proxyCats?.isNotEmpty() == true) proxyCats.first().id else currentCategoryID
             val proxyRuns = SpeedrunProxyFactory.createProxy().getRuns(gameID, catID!!)
 
             withContext(Dispatchers.Main) {
                 if (proxyCats != null) {
+                    categories.removeAll(categories)
                     categories.addAll(proxyCats)
                 }
                 if (proxyRuns != null) {
+                    runs.removeAll(runs)
                     runs.addAll(proxyRuns)
                 }
             }
@@ -121,8 +124,10 @@ fun CategoryNavigationBar(
     openDrawer: () -> Unit,
 ) {
     var catID = ""
-    if (currentCategoryID.equals("a") && categories?.isNotEmpty() == true) {
-        catID = categories.first().id.toString()
+    catID = if (currentCategoryID.equals(UNDEFINED_CATEGORY) && categories?.isNotEmpty() == true) {
+        categories.first().id.toString()
+    } else {
+        currentCategoryID!!
     }
     val categoryName = categories?.find { cat -> cat.id.equals(catID) }?.name
     TopAppBar(

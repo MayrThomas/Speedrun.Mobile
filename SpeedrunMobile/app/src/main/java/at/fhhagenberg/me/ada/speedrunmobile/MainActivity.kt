@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import at.fhhagenberg.me.ada.speedrunmobile.core.Category
 import at.fhhagenberg.me.ada.speedrunmobile.core.Game
+import at.fhhagenberg.me.ada.speedrunmobile.core.UNDEFINED_CATEGORY
 import at.fhhagenberg.me.ada.speedrunmobile.navigation.NavBarItems
 import at.fhhagenberg.me.ada.speedrunmobile.navigation.NavRoutes
 import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
@@ -100,13 +101,13 @@ fun NavigationHost(
         ) {
             composable(NavRoutes.Home.route) {
                 Home(onGameClicked = { gameID ->
-                    navigateToGame(navController, gameID, "a")
+                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY)
                 })
             }
 
             composable(NavRoutes.Favorites.route) {
                 Favorites(onGameClicked = { gameID ->
-                    navigateToGame(navController, gameID, "a")
+                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY)
                 })
             }
             val gameName = NavRoutes.Games.route
@@ -142,7 +143,13 @@ fun NavigationHost(
 }
 
 private fun navigateToGame(navController: NavHostController, gameID: String, categoryID: String) {
-    navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID")
+    navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID"){
+        popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
 }
 
 @Composable

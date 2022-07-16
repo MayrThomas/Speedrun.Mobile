@@ -5,3 +5,5 @@ data class Category(
     val name: String?,
     val rules: String?
 )
+
+const val UNDEFINED_CATEGORY = "undefined_cat"
