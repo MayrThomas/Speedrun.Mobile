@@ -1,8 +1,11 @@
 package at.fhhagenberg.me.ada.speedrunmobile.viewmodel
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
+import at.fhhagenberg.me.ada.speedrunmobile.core.Category
 import at.fhhagenberg.me.ada.speedrunmobile.core.Game
+import at.fhhagenberg.me.ada.speedrunmobile.core.UNDEFINED_CATEGORY
 import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
 import kotlinx.coroutines.*
 
@@ -13,6 +16,24 @@ class SMViewModel : ViewModel() {
     private val _favourites = listOf<Game>().toMutableStateList()
     val favourites: List<Game> get() = _favourites
 
+    private val _currentGame = mutableStateOf(Game(null,null,null,null))
+    val currentGame: Game get() = _currentGame.value
+
+    private val _currentCategory = mutableStateOf(UNDEFINED_CATEGORY)
+    val currentCategory: String get() = _currentCategory.value
+
+
+    fun onCurrentCategoryChanged(newCategoryID: String){
+        _currentCategory.value = newCategoryID
+    }
+
+    fun onCurrentGameChanged(newGame: Game){
+        _currentGame.value = newGame
+    }
+
+    fun onCurrentGameChanged(newGameID: String){
+        _currentGame.value = _games.find { it.id.equals(newGameID) } ?: _currentGame.value
+    }
 
     private fun addFavourite(game: Game){
         _favourites.add(game)

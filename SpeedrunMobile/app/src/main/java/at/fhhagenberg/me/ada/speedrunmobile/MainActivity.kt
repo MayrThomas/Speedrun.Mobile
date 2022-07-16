@@ -87,7 +87,6 @@ fun NavigationHost(
     openDrawer: () -> Unit,
     viewModel: SMViewModel,
 ) {
-    val currentGame = remember { mutableStateOf(Game(null, null, null, null)) }
     ModalDrawer(
         drawerState = drawerState,
         gesturesEnabled = drawerState.isOpen,
@@ -97,8 +96,9 @@ fun NavigationHost(
                     scope.launch {
                         drawerState.close()
                     }
+                    viewModel.onCurrentCategoryChanged(category)
                     navigateToGame(navController, game, category)
-                }, game = currentGame.value)
+                }, game = viewModel.currentGame)
         }
     ) {
         NavHost(
@@ -107,12 +107,14 @@ fun NavigationHost(
         ) {
             composable(NavRoutes.Home.route) {
                 Home(onGameClicked = { gameID ->
+                    viewModel.onCurrentGameChanged(gameID)
                     navigateToGame(navController, gameID, UNDEFINED_CATEGORY)
                 }, viewModel = viewModel)
             }
 
             composable(NavRoutes.Favorites.route) {
                 Favorites(onGameClicked = { gameID ->
+                    viewModel.onCurrentGameChanged(gameID)
                     navigateToGame(navController, gameID, UNDEFINED_CATEGORY)
                 }, viewModel = viewModel)
             }
@@ -129,20 +131,8 @@ fun NavigationHost(
                 val gameID = entry.arguments?.getString("gameID")
                 val categoryID = entry.arguments?.getString("categoryID")
 
-                scope.launch {
-                    withContext(Dispatchers.IO) {
-                        val proxyGame = SpeedrunProxyFactory.createProxy().getGame(gameID!!)
-                        withContext(Dispatchers.Main) {
-                            if (proxyGame != null) {
-                                currentGame.value = proxyGame
-                            }
-                        }
-                    }
-                }
-
                 GameScreen(
-                    openDrawer = { openDrawer() },
-                    gameID = gameID, currentCategoryID = categoryID)
+                    openDrawer = { openDrawer() }, viewModel = viewModel)
             }
         }
     }

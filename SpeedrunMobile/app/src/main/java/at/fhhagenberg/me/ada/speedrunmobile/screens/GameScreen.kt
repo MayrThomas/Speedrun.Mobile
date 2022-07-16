@@ -25,6 +25,7 @@ import at.fhhagenberg.me.ada.speedrunmobile.core.Run
 import at.fhhagenberg.me.ada.speedrunmobile.core.UNDEFINED_CATEGORY
 import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
 import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.SpeedrunMobileTheme
+import at.fhhagenberg.me.ada.speedrunmobile.viewmodel.SMViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,38 +45,14 @@ val testCategories: List<Category> = listOf(
 @SuppressLint("CoroutineCreationDuringComposition", "UnrememberedMutableState")
 @Composable
 fun GameScreen(
-    gameID: String? = null,
-    currentCategoryID: String? = null,
     openDrawer: () -> Unit,
+    viewModel: SMViewModel
 ) {
-    val categories = remember { mutableStateListOf<Category>() }
-    val runs = remember { mutableStateListOf<Run>() }
-    val coroutineScope = rememberCoroutineScope()
+    CategoryNavigationBar(categories = viewModel.currentGame.categories,
+        openDrawer = { openDrawer() }, currentCategoryID = viewModel.currentCategory)
 
-    coroutineScope.launch {
-        withContext(Dispatchers.IO) {
-            val proxyCats = SpeedrunProxyFactory.createProxy().getGame(gameID!!)?.categories
-            val catID =
-                if (currentCategoryID.equals(UNDEFINED_CATEGORY) && proxyCats?.isNotEmpty() == true) proxyCats.first().id else currentCategoryID
-            val proxyRuns = SpeedrunProxyFactory.createProxy().getRuns(gameID, catID!!)
-
-            withContext(Dispatchers.Main) {
-                if (proxyCats != null) {
-                    categories.removeAll(categories)
-                    categories.addAll(proxyCats)
-                }
-                if (proxyRuns != null) {
-                    runs.removeAll(runs)
-                    runs.addAll(proxyRuns)
-                }
-            }
-        }
-    }
-
-    CategoryNavigationBar(categories = categories,
-        openDrawer = { openDrawer() }, currentCategoryID = currentCategoryID)
-
-    RunsBody(runs = runs)
+    //TODO(GET RUNS)
+    //RunsBody(runs = runs)
 }
 
 @Composable
