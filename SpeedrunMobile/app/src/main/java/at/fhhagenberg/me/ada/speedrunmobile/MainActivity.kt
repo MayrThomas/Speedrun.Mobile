@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -36,6 +38,7 @@ import at.fhhagenberg.me.ada.speedrunmobile.screens.Favorites
 import at.fhhagenberg.me.ada.speedrunmobile.screens.GameScreen
 import at.fhhagenberg.me.ada.speedrunmobile.screens.Home
 import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.SpeedrunMobileTheme
+import at.fhhagenberg.me.ada.speedrunmobile.viewmodel.SMViewModel
 import kotlinx.coroutines.*
 
 class MainActivity : ComponentActivity() {
@@ -60,6 +63,8 @@ fun MainScreen() {
             drawerState.open()
         }
     }
+    val viewModel: SMViewModel = viewModel()
+    viewModel.initGames()
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Speedrun.Mobile") }) },
@@ -67,7 +72,7 @@ fun MainScreen() {
             NavigationHost(navController = navController,
                 drawerState = drawerState,
                 scope = scope,
-                openDrawer = { openDrawer() })
+                openDrawer = { openDrawer() }, viewModel)
         },
         bottomBar = { BottomNavigationBar(navController = navController) }
     )
@@ -80,6 +85,7 @@ fun NavigationHost(
     drawerState: DrawerState,
     scope: CoroutineScope,
     openDrawer: () -> Unit,
+    viewModel: SMViewModel,
 ) {
     val currentGame = remember { mutableStateOf(Game(null, null, null, null)) }
     ModalDrawer(
@@ -102,13 +108,13 @@ fun NavigationHost(
             composable(NavRoutes.Home.route) {
                 Home(onGameClicked = { gameID ->
                     navigateToGame(navController, gameID, UNDEFINED_CATEGORY)
-                })
+                }, viewModel = viewModel)
             }
 
             composable(NavRoutes.Favorites.route) {
                 Favorites(onGameClicked = { gameID ->
                     navigateToGame(navController, gameID, UNDEFINED_CATEGORY)
-                })
+                }, viewModel = viewModel)
             }
             val gameName = NavRoutes.Games.route
             composable(route = "$gameName/{gameID}/{categoryID}",
@@ -143,7 +149,7 @@ fun NavigationHost(
 }
 
 private fun navigateToGame(navController: NavHostController, gameID: String, categoryID: String) {
-    navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID"){
+    navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID") {
         popUpTo(navController.graph.findStartDestination().id) {
             saveState = true
         }
