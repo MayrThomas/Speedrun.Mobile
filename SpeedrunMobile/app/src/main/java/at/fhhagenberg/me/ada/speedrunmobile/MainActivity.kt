@@ -5,7 +5,6 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -17,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -27,12 +25,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import at.fhhagenberg.me.ada.speedrunmobile.core.Category
-import at.fhhagenberg.me.ada.speedrunmobile.core.Game
 import at.fhhagenberg.me.ada.speedrunmobile.core.UNDEFINED_CATEGORY
 import at.fhhagenberg.me.ada.speedrunmobile.navigation.NavBarItems
 import at.fhhagenberg.me.ada.speedrunmobile.navigation.NavRoutes
-import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
 import at.fhhagenberg.me.ada.speedrunmobile.screens.Drawer
 import at.fhhagenberg.me.ada.speedrunmobile.screens.Favorites
 import at.fhhagenberg.me.ada.speedrunmobile.screens.GameScreen
@@ -64,7 +59,7 @@ fun MainScreen() {
         }
     }
     val viewModel: SMViewModel = viewModel()
-    viewModel.initGames()
+    viewModel.updateGames()
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Speedrun.Mobile") }) },
@@ -96,8 +91,8 @@ fun NavigationHost(
                     scope.launch {
                         drawerState.close()
                     }
-                    viewModel.onCurrentCategoryChanged(category)
-                    navigateToGame(navController, game, category)
+                    //viewModel.onCurrentCategoryChanged(category)
+                    navigateToGame(navController, game, category, viewModel)
                 }, game = viewModel.currentGame)
         }
     ) {
@@ -107,15 +102,15 @@ fun NavigationHost(
         ) {
             composable(NavRoutes.Home.route) {
                 Home(onGameClicked = { gameID ->
-                    viewModel.onCurrentGameChanged(gameID)
-                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY)
+                    // viewModel.onCurrentGameChanged(gameID)
+                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY, viewModel)
                 }, viewModel = viewModel)
             }
 
             composable(NavRoutes.Favorites.route) {
                 Favorites(onGameClicked = { gameID ->
-                    viewModel.onCurrentGameChanged(gameID)
-                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY)
+                   // viewModel.onCurrentGameChanged(gameID)
+                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY, viewModel)
                 }, viewModel = viewModel)
             }
             val gameName = NavRoutes.Games.route
@@ -131,6 +126,9 @@ fun NavigationHost(
                 val gameID = entry.arguments?.getString("gameID")
                 val categoryID = entry.arguments?.getString("categoryID")
 
+                //Gets called twice, probably because it recomposes. Find better way to do this.
+                viewModel.updateRuns()
+
                 GameScreen(
                     openDrawer = { openDrawer() }, viewModel = viewModel)
             }
@@ -138,7 +136,9 @@ fun NavigationHost(
     }
 }
 
-private fun navigateToGame(navController: NavHostController, gameID: String, categoryID: String) {
+private fun navigateToGame(navController: NavHostController, gameID: String, categoryID: String, viewModel: SMViewModel) {
+    viewModel.onCurrentGameChanged(gameID)
+    viewModel.onCurrentCategoryChanged(categoryID)
     navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID") {
         popUpTo(navController.graph.findStartDestination().id) {
             saveState = true

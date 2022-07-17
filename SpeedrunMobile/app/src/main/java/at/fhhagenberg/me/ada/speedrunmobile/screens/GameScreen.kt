@@ -51,8 +51,7 @@ fun GameScreen(
     CategoryNavigationBar(categories = viewModel.currentGame.categories,
         openDrawer = { openDrawer() }, currentCategoryID = viewModel.currentCategory)
 
-    //TODO(GET RUNS)
-    //RunsBody(runs = runs)
+    RunsBody(runs = viewModel.runs)
 }
 
 @Composable
