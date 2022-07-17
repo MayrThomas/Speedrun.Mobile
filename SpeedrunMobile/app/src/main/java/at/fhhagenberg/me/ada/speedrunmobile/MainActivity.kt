@@ -148,10 +148,11 @@ private fun navigateToGame(navController: NavHostController, gameID: String, cat
     }
 }
 
+const val PREFERRED_BOTTOM_NAV_HEIGHT = 60
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
 
-    BottomNavigation(modifier = Modifier.height(60.dp),
+    BottomNavigation(modifier = Modifier.height(PREFERRED_BOTTOM_NAV_HEIGHT.dp),
         backgroundColor = MaterialTheme.colors.secondary) {
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route

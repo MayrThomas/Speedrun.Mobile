@@ -19,6 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import at.fhhagenberg.me.ada.speedrunmobile.PREFERRED_BOTTOM_NAV_HEIGHT
 import at.fhhagenberg.me.ada.speedrunmobile.SearchBar
 import at.fhhagenberg.me.ada.speedrunmobile.core.Game
 import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
@@ -70,7 +71,7 @@ fun GamesBody(
     onFavouriteChanged: (Game, Boolean) -> Unit,
 ) {
     LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 150.dp),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 60.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = PREFERRED_BOTTOM_NAV_HEIGHT.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp),
         modifier = modifier) {
