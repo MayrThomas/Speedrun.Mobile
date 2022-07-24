@@ -1,8 +1,10 @@
 package at.fhhagenberg.me.ada.speedrunmobile
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +38,7 @@ import at.fhhagenberg.me.ada.speedrunmobile.screens.Home
 import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.SpeedrunMobileTheme
 import at.fhhagenberg.me.ada.speedrunmobile.viewmodel.SMViewModel
 import kotlinx.coroutines.*
+import kotlin.coroutines.coroutineContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,6 +86,7 @@ fun NavigationHost(
     openDrawer: () -> Unit,
     viewModel: SMViewModel,
 ) {
+    val context = LocalContext.current
     ModalDrawer(
         drawerState = drawerState,
         gesturesEnabled = drawerState.isOpen,
@@ -92,7 +97,7 @@ fun NavigationHost(
                         drawerState.close()
                     }
                     //viewModel.onCurrentCategoryChanged(category)
-                    navigateToGame(navController, game, category, viewModel)
+                    navigateToGame(navController, game, category, viewModel, context, context.getString(R.string.categories_unavailable))
                 }, game = viewModel.currentGame)
         }
     ) {
@@ -103,14 +108,14 @@ fun NavigationHost(
             composable(NavRoutes.Home.route) {
                 Home(onGameClicked = { gameID ->
                     // viewModel.onCurrentGameChanged(gameID)
-                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY, viewModel)
+                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY, viewModel, context, context.getString(R.string.categories_unavailable))
                 }, viewModel = viewModel)
             }
 
             composable(NavRoutes.Favorites.route) {
                 Favorites(onGameClicked = { gameID ->
-                   // viewModel.onCurrentGameChanged(gameID)
-                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY, viewModel)
+                    // viewModel.onCurrentGameChanged(gameID)
+                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY, viewModel, context, context.getString(R.string.categories_unavailable))
                 }, viewModel = viewModel)
             }
             val gameName = NavRoutes.Games.route
@@ -136,19 +141,35 @@ fun NavigationHost(
     }
 }
 
-private fun navigateToGame(navController: NavHostController, gameID: String, categoryID: String, viewModel: SMViewModel) {
+private fun navigateToGame(
+    navController: NavHostController,
+    gameID: String,
+    categoryID: String,
+    viewModel: SMViewModel,
+    context: Context,
+    failMessage: String
+) {
     viewModel.onCurrentGameChanged(gameID)
-    viewModel.onCurrentCategoryChanged(categoryID)
-    navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID") {
-        popUpTo(navController.graph.findStartDestination().id) {
-            saveState = true
+    if (viewModel.currentGame.categories?.isNotEmpty() == true) {
+        viewModel.onCurrentCategoryChanged(categoryID)
+        navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID") {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
         }
-        launchSingleTop = true
-        restoreState = true
+    } else {
+        showToast(context, failMessage)
     }
 }
 
+private fun showToast(context: Context, message: String){
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+}
+
 const val PREFERRED_BOTTOM_NAV_HEIGHT = 60
+
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
 

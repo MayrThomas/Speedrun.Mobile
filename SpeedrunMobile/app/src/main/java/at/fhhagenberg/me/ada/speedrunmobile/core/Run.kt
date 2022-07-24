@@ -7,5 +7,6 @@ data class Run(
     var videos: List<String?>?,
     var runners: List<String?>?,
     var submitted: String?,
-    var times: Any?
+    var times: Any?,
+    var actualRunner: Runner? = null
 )

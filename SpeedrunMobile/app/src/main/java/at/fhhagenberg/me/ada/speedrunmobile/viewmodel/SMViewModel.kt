@@ -28,7 +28,12 @@ class SMViewModel : ViewModel() {
 
     fun onCurrentCategoryChanged(newCategoryID: String) {
         if (newCategoryID == UNDEFINED_CATEGORY) {
-            _currentCategory.value = _currentGame.value.categories?.first()?.id!!
+            if (_currentGame.value.categories?.isNotEmpty() == true) {
+                _currentCategory.value =
+                    _currentGame.value.categories?.first()?.id!!
+            } else {
+                _currentCategory.value = UNDEFINED_CATEGORY
+            }
         } else {
             _currentCategory.value = newCategoryID
         }
