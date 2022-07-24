@@ -25,6 +25,9 @@ class SMViewModel : ViewModel() {
     private val _currentCategory = mutableStateOf(UNDEFINED_CATEGORY)
     val currentCategory: String get() = _currentCategory.value
 
+    private val _currentVideo = mutableStateOf("")
+    val currentVideo: String get() = _currentVideo.value
+
 
     fun onCurrentCategoryChanged(newCategoryID: String) {
         if (newCategoryID == UNDEFINED_CATEGORY) {
@@ -40,6 +43,10 @@ class SMViewModel : ViewModel() {
 
     fun onCurrentGameChanged(newGameID: String) {
         _currentGame.value = _games.find { it.id.equals(newGameID) } ?: _currentGame.value
+    }
+
+    fun onCurrentVideoChange(newVideo: String) {
+        _currentVideo.value = newVideo
     }
 
     private fun addFavourite(game: Game) {

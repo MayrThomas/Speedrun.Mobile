@@ -28,10 +28,7 @@ import androidx.navigation.navArgument
 import at.fhhagenberg.me.ada.speedrunmobile.core.UNDEFINED_CATEGORY
 import at.fhhagenberg.me.ada.speedrunmobile.navigation.NavBarItems
 import at.fhhagenberg.me.ada.speedrunmobile.navigation.NavRoutes
-import at.fhhagenberg.me.ada.speedrunmobile.screens.Drawer
-import at.fhhagenberg.me.ada.speedrunmobile.screens.Favorites
-import at.fhhagenberg.me.ada.speedrunmobile.screens.GameScreen
-import at.fhhagenberg.me.ada.speedrunmobile.screens.Home
+import at.fhhagenberg.me.ada.speedrunmobile.screens.*
 import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.SpeedrunMobileTheme
 import at.fhhagenberg.me.ada.speedrunmobile.viewmodel.SMViewModel
 import kotlinx.coroutines.*
@@ -130,7 +127,13 @@ fun NavigationHost(
                 viewModel.updateRuns()
 
                 GameScreen(
-                    openDrawer = { openDrawer() }, viewModel = viewModel)
+                    openDrawer = { openDrawer() }, viewModel = viewModel, onPlayClicked = { videoUrl ->
+                        navigateToVideoPlayer(navController, videoUrl, viewModel)
+                    })
+            }
+
+            composable(NavRoutes.VideoPlayer.route) {
+                VideoPlayer(viewModel)
             }
         }
     }
@@ -141,6 +144,19 @@ private fun navigateToGame(navController: NavHostController, gameID: String, cat
     viewModel.onCurrentCategoryChanged(categoryID)
     navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID") {
         popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
+private fun navigateToVideoPlayer(navController: NavHostController, videoUrl: String, viewModel: SMViewModel) {
+    val currentGame = viewModel.currentGame
+    viewModel.onCurrentVideoChange(videoUrl)
+
+    navController.navigate(NavRoutes.VideoPlayer.route) {
+        popUpTo("${NavRoutes.Games.route}/${currentGame.id}/${viewModel.currentCategory}") {
             saveState = true
         }
         launchSingleTop = true

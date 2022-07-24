@@ -54,30 +54,31 @@ val testCategories: List<Category> = listOf(
 fun GameScreen(
     openDrawer: () -> Unit,
     viewModel: SMViewModel,
+    onPlayClicked: (String) -> Unit
 ) {
     Scaffold(topBar = {
         CategoryNavigationBar(categories = viewModel.currentGame.categories,
             openDrawer = { openDrawer() }, currentCategoryID = viewModel.currentCategory)
     }) {
-        RunsBody(runs = viewModel.runs, Modifier.padding(bottom = PREFERRED_BOTTOM_NAV_HEIGHT.dp))
+        RunsBody(runs = viewModel.runs, Modifier.padding(bottom = PREFERRED_BOTTOM_NAV_HEIGHT.dp), onPlayClicked)
     }
 
 
 }
 
 @Composable
-fun RunsBody(runs: List<Run>, modifier: Modifier = Modifier) {
+fun RunsBody(runs: List<Run>, modifier: Modifier = Modifier, onPlayClicked: (String) -> Unit = {}) {
     LazyColumn(horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center,
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp), modifier = modifier) {
         items(runs) { run ->
-            Run(run)
+            Run(run, onPlayClicked)
         }
     }
 }
 
 @Composable
-fun Run(run: Run) {
+fun Run(run: Run, onPlayClicked: (String) -> Unit) {
     val color =
         if (run.place!! % 2 == 0) MaterialTheme.colors.primary else MaterialTheme.colors.primaryVariant
     Surface(color = color) {
@@ -91,7 +92,7 @@ fun Run(run: Run) {
                     .fillMaxWidth(0.4f))
             //Text(text = run.times.toString())
             Text(text = run.submitted ?: "Date", modifier = Modifier.fillMaxWidth(0.9f))
-            IconButton(onClick = { /*TODO show video*/ }, modifier = Modifier.fillMaxWidth(1f)) {
+            IconButton(onClick = { onPlayClicked(run.videos?.get(0)!!) }, modifier = Modifier.fillMaxWidth(1f)) {
                 Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Video of run")
             }
         }
