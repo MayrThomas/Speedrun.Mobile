@@ -5,7 +5,7 @@ data class Run(
     var place: Int?,
     var comment: String?,
     var videos: List<String?>?,
-    var runners: List<String>?,
+    var runners: List<String?>?,
     var submitted: String?,
     var times: Any?
 )

@@ -18,10 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import at.fhhagenberg.me.ada.speedrunmobile.PREFERRED_BOTTOM_NAV_HEIGHT
 import at.fhhagenberg.me.ada.speedrunmobile.SearchBar
 import at.fhhagenberg.me.ada.speedrunmobile.core.Game
 import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
 import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.HeaderGreen
+import at.fhhagenberg.me.ada.speedrunmobile.viewmodel.SMViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,10 +32,10 @@ import kotlinx.coroutines.withContext
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun Home(onGameClicked: (String) -> Unit) {
+fun Home(onGameClicked: (String) -> Unit, viewModel: SMViewModel) {
     val coroutineScope = rememberCoroutineScope()
 
-    var games = remember { mutableStateListOf<Game>() }
+    /*val games = remember { mutableStateListOf<Game>() }
 
     coroutineScope.launch {
         withContext(Dispatchers.IO) {
@@ -44,15 +47,18 @@ fun Home(onGameClicked: (String) -> Unit) {
                 }
             }
         }
-    }
+    }*/
 
     Column {
         Spacer(modifier = Modifier.height(16.dp))
         SearchBar(Modifier.padding(horizontal = 16.dp))
 
         GamesBody(modifier = Modifier.padding(top = 16.dp),
-            data = games,
-            onGameClicked = onGameClicked)
+            data = viewModel.games,
+            onGameClicked = onGameClicked,
+            onFavouriteChanged = { game, fav ->
+                viewModel.onFavouriteChanged(game, fav)
+            })
 
     }
 }
@@ -62,21 +68,29 @@ fun GamesBody(
     modifier: Modifier = Modifier,
     onGameClicked: (String) -> Unit,
     data: List<Game> = listOf(),
+    onFavouriteChanged: (Game, Boolean) -> Unit,
 ) {
     LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 150.dp),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 60.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = PREFERRED_BOTTOM_NAV_HEIGHT.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(space = 8.dp),
         modifier = modifier) {
         items(data) { item ->
-            Game(data = item, onGameClicked = onGameClicked)
+            Game(data = item, onGameClicked = onGameClicked, onFavouriteChanged = { fav ->
+                onFavouriteChanged(item,fav)
+            })
         }
     }
 }
 
 @Composable
-fun Game(modifier: Modifier = Modifier, data: Game?, onGameClicked: (String) -> Unit) {
-    var favourite by rememberSaveable { mutableStateOf(false) }
+fun Game(
+    modifier: Modifier = Modifier,
+    data: Game?,
+    onGameClicked: (String) -> Unit,
+    onFavouriteChanged: (Boolean) -> Unit,
+) {
+
     Surface(color = MaterialTheme.colors.primary,
         shape = MaterialTheme.shapes.large,
         border = BorderStroke(Dp.Hairline,
@@ -85,15 +99,14 @@ fun Game(modifier: Modifier = Modifier, data: Game?, onGameClicked: (String) -> 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally) {
             Row(horizontalArrangement = Arrangement.Start) {
-                IconButton(onClick = { favourite = !favourite }) {
-                    if (favourite) {
+                IconButton(onClick = { onFavouriteChanged(!data?.fav!!) }) {
+                    if (data?.fav!!) {
                         Icon(Icons.Default.Favorite, contentDescription = null)
+
                     } else {
                         Icon(Icons.Default.FavoriteBorder, contentDescription = null)
                     }
                 }
-                //TODO: Image of game
-
                 AsyncImage(model = data?.cover,
                     contentDescription = null,
                     contentScale = ContentScale.Fit,

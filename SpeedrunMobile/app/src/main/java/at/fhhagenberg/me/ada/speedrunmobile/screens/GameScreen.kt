@@ -5,28 +5,37 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import at.fhhagenberg.me.ada.speedrunmobile.PREFERRED_BOTTOM_NAV_HEIGHT
 import at.fhhagenberg.me.ada.speedrunmobile.R
 import at.fhhagenberg.me.ada.speedrunmobile.core.Category
 import at.fhhagenberg.me.ada.speedrunmobile.core.Game
 import at.fhhagenberg.me.ada.speedrunmobile.core.Run
+import at.fhhagenberg.me.ada.speedrunmobile.core.UNDEFINED_CATEGORY
 import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
 import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.SpeedrunMobileTheme
+import at.fhhagenberg.me.ada.speedrunmobile.viewmodel.SMViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.*
 
 val testCategories: List<Category> = listOf(
     Category(id = "02qr00pk",
@@ -43,43 +52,48 @@ val testCategories: List<Category> = listOf(
 @SuppressLint("CoroutineCreationDuringComposition", "UnrememberedMutableState")
 @Composable
 fun GameScreen(
-    gameID: String? = null,
-    currentCategoryID: String? = null,
     openDrawer: () -> Unit,
+    viewModel: SMViewModel,
 ) {
-    val categories = remember { mutableStateListOf<Category>() }
-    val runs = remember { mutableStateListOf<Run>() }
-    val coroutineScope = rememberCoroutineScope()
-
-    coroutineScope.launch {
-        withContext(Dispatchers.IO) {
-            val proxyCats = SpeedrunProxyFactory.createProxy().getGame(gameID!!)?.categories
-            val catID =
-                if (currentCategoryID.equals("a") && proxyCats?.isNotEmpty() == true) proxyCats.first().id else currentCategoryID
-            val proxyRuns = SpeedrunProxyFactory.createProxy().getRuns(gameID, catID!!)
-
-            withContext(Dispatchers.Main) {
-                if (proxyCats != null) {
-                    categories.addAll(proxyCats)
-                }
-                if (proxyRuns != null) {
-                    runs.addAll(proxyRuns)
-                }
-            }
-        }
+    Scaffold(topBar = {
+        CategoryNavigationBar(categories = viewModel.currentGame.categories,
+            openDrawer = { openDrawer() }, currentCategoryID = viewModel.currentCategory)
+    }) {
+        RunsBody(runs = viewModel.runs, Modifier.padding(bottom = PREFERRED_BOTTOM_NAV_HEIGHT.dp))
     }
 
-    CategoryNavigationBar(categories = categories,
-        openDrawer = { openDrawer() }, currentCategoryID = currentCategoryID)
 
-    RunsBody(runs = runs)
 }
 
 @Composable
-fun RunsBody(runs: List<Run>) {
-    Column {
-        runs.forEach { run ->
-            run.id?.let { Text(text = it) }
+fun RunsBody(runs: List<Run>, modifier: Modifier = Modifier) {
+    LazyColumn(horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Center,
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp), modifier = modifier) {
+        items(runs) { run ->
+            Run(run)
+        }
+    }
+}
+
+@Composable
+fun Run(run: Run) {
+    val color =
+        if (run.place!! % 2 == 0) MaterialTheme.colors.primary else MaterialTheme.colors.primaryVariant
+    Surface(color = color) {
+
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly) {
+            Text(text = run.place.toString(), modifier = Modifier.fillMaxWidth(0.1f))
+            Text(text = run.runners?.first() ?: "Player",
+                modifier = Modifier
+                    .clickable { /*TODO navigate to runner*/ }
+                    .fillMaxWidth(0.4f))
+            //Text(text = run.times.toString())
+            Text(text = run.submitted ?: "Date", modifier = Modifier.fillMaxWidth(0.9f))
+            IconButton(onClick = { /*TODO show video*/ }, modifier = Modifier.fillMaxWidth(1f)) {
+                Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Video of run")
+            }
         }
     }
 }
@@ -121,8 +135,10 @@ fun CategoryNavigationBar(
     openDrawer: () -> Unit,
 ) {
     var catID = ""
-    if (currentCategoryID.equals("a") && categories?.isNotEmpty() == true) {
-        catID = categories.first().id.toString()
+    catID = if (currentCategoryID.equals(UNDEFINED_CATEGORY) && categories?.isNotEmpty() == true) {
+        categories.first().id.toString()
+    } else {
+        currentCategoryID!!
     }
     val categoryName = categories?.find { cat -> cat.id.equals(catID) }?.name
     TopAppBar(
@@ -157,6 +173,52 @@ fun CategoryNavigationBarPreviewLight() {
     SpeedrunMobileTheme {
         CategoryNavigationBar(categories = testCategories,
             openDrawer = {}, currentCategoryID = "Any%")
+    }
+}
+
+private val testRuns = listOf(
+    Run(
+        "zp9p4j8m",
+        1,
+        "First game in alphabetic order on speedrun.com.\r\nThank you for verifying  f1shy ! ",
+        null,
+        listOf("kj9p77x4"),
+        "2022-06-18T10:27:58Z",
+        null
+    ),
+    Run(
+        "yvqll06m",
+        2,
+        null,
+        null,
+        listOf("zx7ero68"),
+        "2022-02-14T22:35:29Z",
+        null
+    ),
+    Run(
+        "yvqk21xm",
+        3,
+        "Using: Flashpoint 10.1.0.5",
+        null,
+        listOf("xk3y5l98"),
+        "2022-03-17T15:29:22Z",
+        null
+    )
+)
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 400)
+@Composable
+fun RunPreviewDark() {
+    SpeedrunMobileTheme {
+        RunsBody(runs = testRuns)
+    }
+}
+
+@Preview(showBackground = true, widthDp = 400)
+@Composable
+fun RunPreviewLight() {
+    SpeedrunMobileTheme {
+        RunsBody(runs = testRuns)
     }
 }
 
