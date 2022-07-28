@@ -55,6 +55,7 @@ fun GameScreen(
     }) {
         RunsBody(runs = viewModel.runs, Modifier.padding(bottom = PREFERRED_BOTTOM_NAV_HEIGHT.dp))
     }
+    viewModel.categoryChanged = false
 
 
 }

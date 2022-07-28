@@ -4,15 +4,18 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -39,6 +42,7 @@ import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.SpeedrunMobileTheme
 import at.fhhagenberg.me.ada.speedrunmobile.viewmodel.SMViewModel
 import kotlinx.coroutines.*
 import kotlin.coroutines.coroutineContext
+import kotlin.math.log
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,11 +97,17 @@ fun NavigationHost(
         drawerContent = {
             Drawer(
                 onDestinationClicked = { game, category ->
+                    viewModel.categoryChanged = true
                     scope.launch {
                         drawerState.close()
                     }
                     //viewModel.onCurrentCategoryChanged(category)
-                    navigateToGame(navController, game, category, viewModel, context, context.getString(R.string.categories_unavailable))
+                    navigateToGame(navController,
+                        game,
+                        category,
+                        viewModel,
+                        context,
+                        context.getString(R.string.categories_unavailable))
                 }, game = viewModel.currentGame)
         }
     ) {
@@ -107,15 +117,23 @@ fun NavigationHost(
         ) {
             composable(NavRoutes.Home.route) {
                 Home(onGameClicked = { gameID ->
-                    // viewModel.onCurrentGameChanged(gameID)
-                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY, viewModel, context, context.getString(R.string.categories_unavailable))
+                    navigateToGame(navController,
+                        gameID,
+                        UNDEFINED_CATEGORY,
+                        viewModel,
+                        context,
+                        context.getString(R.string.categories_unavailable))
                 }, viewModel = viewModel)
             }
 
             composable(NavRoutes.Favorites.route) {
                 Favorites(onGameClicked = { gameID ->
-                    // viewModel.onCurrentGameChanged(gameID)
-                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY, viewModel, context, context.getString(R.string.categories_unavailable))
+                    navigateToGame(navController,
+                        gameID,
+                        UNDEFINED_CATEGORY,
+                        viewModel,
+                        context,
+                        context.getString(R.string.categories_unavailable))
                 }, viewModel = viewModel)
             }
             val gameName = NavRoutes.Games.route
@@ -127,12 +145,11 @@ fun NavigationHost(
                     navArgument("categoryID") {
                         type = NavType.StringType
                     }
-                )) { entry ->
-                val gameID = entry.arguments?.getString("gameID")
-                val categoryID = entry.arguments?.getString("categoryID")
+                )) {
 
-                //Gets called twice, probably because it recomposes. Find better way to do this.
-                viewModel.updateRuns()
+                if (viewModel.categoryChanged) {
+                    viewModel.updateRuns()
+                }
 
                 GameScreen(
                     openDrawer = { openDrawer() }, viewModel = viewModel)
@@ -147,10 +164,11 @@ private fun navigateToGame(
     categoryID: String,
     viewModel: SMViewModel,
     context: Context,
-    failMessage: String
+    failMessage: String,
 ) {
     viewModel.onCurrentGameChanged(gameID)
     if (viewModel.currentGame.categories?.isNotEmpty() == true) {
+        viewModel.categoryChanged = true
         viewModel.onCurrentCategoryChanged(categoryID)
         navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID") {
             popUpTo(navController.graph.findStartDestination().id) {
@@ -164,7 +182,7 @@ private fun navigateToGame(
     }
 }
 
-private fun showToast(context: Context, message: String){
+private fun showToast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }
 
@@ -224,14 +242,24 @@ fun DefaultPreviewDark() {
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
+    viewModel: SMViewModel = viewModel(),
 ) {
+    var value: String by remember { mutableStateOf("") }
     TextField(
-        value = "",
-        onValueChange = {},
+        value = value,
+        onValueChange = { value = it },
+        textStyle = MaterialTheme.typography.h6,
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null
+            )
+        },
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Default.Send,
+                contentDescription = null,
+                modifier = Modifier.clickable { viewModel.onGamesSearch(value) }
             )
         },
         colors = TextFieldDefaults.textFieldColors(

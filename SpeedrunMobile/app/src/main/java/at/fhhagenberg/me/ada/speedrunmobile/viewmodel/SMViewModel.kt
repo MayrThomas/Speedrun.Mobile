@@ -1,7 +1,7 @@
 package at.fhhagenberg.me.ada.speedrunmobile.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.toMutableStateList
+import android.util.Log
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import at.fhhagenberg.me.ada.speedrunmobile.core.Game
 import at.fhhagenberg.me.ada.speedrunmobile.core.Run
@@ -25,8 +25,32 @@ class SMViewModel : ViewModel() {
     private val _currentCategory = mutableStateOf(UNDEFINED_CATEGORY)
     val currentCategory: String get() = _currentCategory.value
 
+    var categoryChanged = false
+
+    //The games that normally would be shown on the home screen go here, while the games from a search are being displayed
+    private val _searchBuffer = listOf<Game>().toMutableStateList()
+
+    fun onGamesSearch(filter: String) {
+        fun onGamesReceived(games: List<Game>) {
+            _searchBuffer.removeRange(0, _searchBuffer.size)
+            _searchBuffer.addAll(_games)
+            _games.removeRange(0, _games.size)
+            _games.addAll(games)
+        }
+
+        val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+            error("Exception: ${throwable.localizedMessage}")
+        }
+        CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
+            val proxyGames = SpeedrunProxyFactory.createProxy().getGames(filter = filter, page = 0)
+            withContext(Dispatchers.Main) {
+                onGamesReceived(proxyGames?.toList()!!)
+            }
+        }
+    }
 
     fun onCurrentCategoryChanged(newCategoryID: String) {
+        Log.d("GAME","oncurrentcatchagned")
         if (newCategoryID == UNDEFINED_CATEGORY) {
             if (_currentGame.value.categories?.isNotEmpty() == true) {
                 _currentCategory.value =
@@ -39,11 +63,8 @@ class SMViewModel : ViewModel() {
         }
     }
 
-    fun onCurrentGameChanged(newGame: Game) {
-        _currentGame.value = newGame
-    }
-
     fun onCurrentGameChanged(newGameID: String) {
+        Log.d("GAME","oncurrentgamechagned")
         _currentGame.value = _games.find { it.id.equals(newGameID) } ?: _currentGame.value
     }
 
@@ -65,14 +86,16 @@ class SMViewModel : ViewModel() {
     }
 
     fun updateGames() {
+        Log.d("GAME","updateGames")
         fetchGames(onGamesReceived = { list ->
             _games.addAll(list)
         })
     }
 
     fun updateRuns() {
+        Log.d("GAME","updateRuns")
+        _runs.removeAll(_runs)
         fetchRunsToCurrentCategory(onRunsReceived = { list ->
-            _runs.removeAll(_runs)
             _runs.addAll(list)
         })
     }
