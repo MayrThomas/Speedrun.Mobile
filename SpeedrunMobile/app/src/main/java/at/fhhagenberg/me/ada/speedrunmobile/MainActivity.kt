@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -244,7 +246,7 @@ fun SearchBar(
     modifier: Modifier = Modifier,
     viewModel: SMViewModel = viewModel(),
 ) {
-    var value: String by remember { mutableStateOf("") }
+    var value: String by rememberSaveable { mutableStateOf("") }
     TextField(
         value = value,
         onValueChange = { value = it },
@@ -256,11 +258,19 @@ fun SearchBar(
             )
         },
         trailingIcon = {
-            Icon(
-                imageVector = Icons.Default.Send,
-                contentDescription = null,
-                modifier = Modifier.clickable { viewModel.onGamesSearch(value) }
-            )
+            if(viewModel.showingSearchResult){
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = null,
+                    modifier = Modifier.clickable { viewModel.onGamesSearchEnd() }
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Send,
+                    contentDescription = null,
+                    modifier = Modifier.clickable { viewModel.onGamesSearch(value) }
+                )
+            }
         },
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = MaterialTheme.colors.surface

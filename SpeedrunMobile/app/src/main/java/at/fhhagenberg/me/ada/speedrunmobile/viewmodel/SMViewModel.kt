@@ -26,12 +26,16 @@ class SMViewModel : ViewModel() {
     val currentCategory: String get() = _currentCategory.value
 
     var categoryChanged = false
+    var showingSearchResult by mutableStateOf(false)
 
     //The games that normally would be shown on the home screen go here, while the games from a search are being displayed
     private val _searchBuffer = listOf<Game>().toMutableStateList()
 
     fun onGamesSearch(filter: String) {
+        if(filter.isEmpty()) return;
+
         fun onGamesReceived(games: List<Game>) {
+            showingSearchResult = true
             _searchBuffer.removeRange(0, _searchBuffer.size)
             _searchBuffer.addAll(_games)
             _games.removeRange(0, _games.size)
@@ -47,6 +51,13 @@ class SMViewModel : ViewModel() {
                 onGamesReceived(proxyGames?.toList()!!)
             }
         }
+    }
+
+    fun onGamesSearchEnd(){
+        showingSearchResult = false
+        _games.removeRange(0,_games.size)
+        _games.addAll(_searchBuffer)
+        _searchBuffer.removeRange(0,_searchBuffer.size)
     }
 
     fun onCurrentCategoryChanged(newCategoryID: String) {
