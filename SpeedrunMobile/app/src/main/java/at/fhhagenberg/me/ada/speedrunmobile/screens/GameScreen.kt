@@ -5,9 +5,12 @@ import android.content.res.Configuration
 import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -16,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +31,7 @@ import at.fhhagenberg.me.ada.speedrunmobile.core.Run
 import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
 import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.SpeedrunMobileTheme
 import at.fhhagenberg.me.ada.speedrunmobile.viewmodel.SMViewModel
+import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -88,20 +93,24 @@ fun Drawer(
     game: Game?,
     onDestinationClicked: (game: String, category: String) -> Unit,
 ) {
+    val scrollState = rememberScrollState()
     Column(
         modifier
             .fillMaxSize()
             .padding(start = 24.dp, top = 48.dp)
+            .scrollable(state = scrollState, orientation = Orientation.Vertical)
     ) {
-        Image(
-            painter = painterResource(R.drawable.ic_launcher_background),
-            contentDescription = "App icon"
-        )
+        Card(shape = MaterialTheme.shapes.large) {
+            AsyncImage(model = game?.cover,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                alignment = Alignment.Center)
+        }
         game?.categories?.forEach { category ->
             Spacer(Modifier.height(24.dp))
             Text(
                 text = category.name!!,
-                style = MaterialTheme.typography.h4,
+                style = MaterialTheme.typography.h5,
                 modifier = Modifier.clickable {
                     onDestinationClicked(game.id!!, category.id!!)
                 }
