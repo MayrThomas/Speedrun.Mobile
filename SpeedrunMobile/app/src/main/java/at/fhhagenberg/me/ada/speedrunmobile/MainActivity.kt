@@ -7,16 +7,22 @@ import android.content.Intent.ACTION_VIEW
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,11 +48,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val context = this.baseContext
-
         setContent {
             SpeedrunMobileTheme {
-                MainScreen(context)
+                MainScreen()
             }
         }
     }
@@ -54,7 +58,7 @@ class MainActivity : ComponentActivity() {
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun MainScreen(context: Context) {
+fun MainScreen() {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -72,7 +76,7 @@ fun MainScreen(context: Context) {
             NavigationHost(navController = navController,
                 drawerState = drawerState,
                 scope = scope,
-                openDrawer = { openDrawer() }, viewModel, context)
+                openDrawer = { openDrawer() }, viewModel)
         },
         bottomBar = { BottomNavigationBar(navController = navController) }
     )
@@ -86,19 +90,25 @@ fun NavigationHost(
     scope: CoroutineScope,
     openDrawer: () -> Unit,
     viewModel: SMViewModel,
-    context: Context
 ) {
+    val context = LocalContext.current
     ModalDrawer(
         drawerState = drawerState,
         gesturesEnabled = drawerState.isOpen,
         drawerContent = {
             Drawer(
                 onDestinationClicked = { game, category ->
+                    viewModel.categoryChanged = true
                     scope.launch {
                         drawerState.close()
                     }
                     //viewModel.onCurrentCategoryChanged(category)
-                    navigateToGame(navController, game, category, viewModel)
+                    navigateToGame(navController,
+                        game,
+                        category,
+                        viewModel,
+                        context,
+                        context.getString(R.string.categories_unavailable))
                 }, game = viewModel.currentGame)
         }
     ) {
@@ -108,15 +118,23 @@ fun NavigationHost(
         ) {
             composable(NavRoutes.Home.route) {
                 Home(onGameClicked = { gameID ->
-                    // viewModel.onCurrentGameChanged(gameID)
-                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY, viewModel)
+                    navigateToGame(navController,
+                        gameID,
+                        UNDEFINED_CATEGORY,
+                        viewModel,
+                        context,
+                        context.getString(R.string.categories_unavailable))
                 }, viewModel = viewModel)
             }
 
             composable(NavRoutes.Favorites.route) {
                 Favorites(onGameClicked = { gameID ->
-                   // viewModel.onCurrentGameChanged(gameID)
-                    navigateToGame(navController, gameID, UNDEFINED_CATEGORY, viewModel)
+                    navigateToGame(navController,
+                        gameID,
+                        UNDEFINED_CATEGORY,
+                        viewModel,
+                        context,
+                        context.getString(R.string.categories_unavailable))
                 }, viewModel = viewModel)
             }
             val gameName = NavRoutes.Games.route
@@ -128,35 +146,50 @@ fun NavigationHost(
                     navArgument("categoryID") {
                         type = NavType.StringType
                     }
-                )) { entry ->
-                val gameID = entry.arguments?.getString("gameID")
-                val categoryID = entry.arguments?.getString("categoryID")
+                )) {
 
-                //Gets called twice, probably because it recomposes. Find better way to do this.
-                viewModel.updateRuns()
+                if (viewModel.categoryChanged) {
+                    viewModel.updateRuns()
+                }
 
                 GameScreen(
                     openDrawer = { openDrawer() }, viewModel = viewModel, onPlayClicked = { videoUrl ->
-                        navigateToVideoPlayer(context, videoUrl, viewModel)
+                        openVideoFromUrl(context, videoUrl, viewModel)
                     })
             }
         }
     }
 }
 
-private fun navigateToGame(navController: NavHostController, gameID: String, categoryID: String, viewModel: SMViewModel) {
+private fun navigateToGame(
+    navController: NavHostController,
+    gameID: String,
+    categoryID: String,
+    viewModel: SMViewModel,
+    context: Context,
+    failMessage: String,
+) {
     viewModel.onCurrentGameChanged(gameID)
-    viewModel.onCurrentCategoryChanged(categoryID)
-    navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID") {
-        popUpTo(navController.graph.findStartDestination().id) {
-            saveState = true
+    if (viewModel.currentGame.categories?.isNotEmpty() == true) {
+        viewModel.categoryChanged = true
+        viewModel.onCurrentCategoryChanged(categoryID)
+        navController.navigate("${NavRoutes.Games.route}/$gameID/$categoryID") {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
         }
-        launchSingleTop = true
-        restoreState = true
+    } else {
+        showToast(context, failMessage)
     }
 }
 
-private fun navigateToVideoPlayer(context: Context, videoUrl: String, viewModel: SMViewModel) {
+private fun showToast(context: Context, message: String) {
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+}
+
+private fun openVideoFromUrl(context: Context, videoUrl: String, viewModel: SMViewModel) {
     viewModel.onCurrentVideoChange(videoUrl)
 
     val intent = Intent(ACTION_VIEW)
@@ -166,6 +199,7 @@ private fun navigateToVideoPlayer(context: Context, videoUrl: String, viewModel:
 }
 
 const val PREFERRED_BOTTOM_NAV_HEIGHT = 60
+
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
 
@@ -200,35 +234,36 @@ fun BottomNavigationBar(navController: NavHostController) {
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    SpeedrunMobileTheme {
-        //MainScreen()
-    }
-}
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun DefaultPreviewDark() {
-    SpeedrunMobileTheme {
-        //MainScreen()
-    }
-}
-
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
+    viewModel: SMViewModel = viewModel(),
 ) {
+    var value: String by rememberSaveable { mutableStateOf("") }
     TextField(
-        value = "",
-        onValueChange = {},
+        value = value,
+        onValueChange = { value = it },
+        textStyle = MaterialTheme.typography.h6,
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null
             )
+        },
+        trailingIcon = {
+            if(viewModel.showingSearchResult){
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = null,
+                    modifier = Modifier.clickable { viewModel.onGamesSearchEnd() }
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Send,
+                    contentDescription = null,
+                    modifier = Modifier.clickable { viewModel.onGamesSearch(value) }
+                )
+            }
         },
         colors = TextFieldDefaults.textFieldColors(
             backgroundColor = MaterialTheme.colors.surface

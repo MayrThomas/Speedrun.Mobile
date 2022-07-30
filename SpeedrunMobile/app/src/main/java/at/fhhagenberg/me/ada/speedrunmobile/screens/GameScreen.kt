@@ -2,6 +2,7 @@ package at.fhhagenberg.me.ada.speedrunmobile.screens
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,31 +12,24 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import at.fhhagenberg.me.ada.speedrunmobile.PREFERRED_BOTTOM_NAV_HEIGHT
 import at.fhhagenberg.me.ada.speedrunmobile.R
-import at.fhhagenberg.me.ada.speedrunmobile.core.Category
-import at.fhhagenberg.me.ada.speedrunmobile.core.Game
+import at.fhhagenberg.me.ada.speedrunmobile.core.*
 import at.fhhagenberg.me.ada.speedrunmobile.core.Run
-import at.fhhagenberg.me.ada.speedrunmobile.core.UNDEFINED_CATEGORY
 import at.fhhagenberg.me.ada.speedrunmobile.network.SpeedrunProxyFactory
 import at.fhhagenberg.me.ada.speedrunmobile.ui.theme.SpeedrunMobileTheme
 import at.fhhagenberg.me.ada.speedrunmobile.viewmodel.SMViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
 
 val testCategories: List<Category> = listOf(
     Category(id = "02qr00pk",
@@ -62,6 +56,7 @@ fun GameScreen(
     }) {
         RunsBody(runs = viewModel.runs, Modifier.padding(bottom = PREFERRED_BOTTOM_NAV_HEIGHT.dp), onPlayClicked)
     }
+    viewModel.categoryChanged = false
 
 
 }
@@ -77,21 +72,23 @@ fun RunsBody(runs: List<Run>, modifier: Modifier = Modifier, onPlayClicked: (Str
     }
 }
 
+@SuppressLint("SimpleDateFormat", "CoroutineCreationDuringComposition")
 @Composable
 fun Run(run: Run, onPlayClicked: (String) -> Unit) {
     val color =
         if (run.place!! % 2 == 0) MaterialTheme.colors.primary else MaterialTheme.colors.primaryVariant
     Surface(color = color) {
-
+        val dateFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+        val fulldate = dateFormatter.parse(run.submitted)
+        val smalldate = SimpleDateFormat("yyyy-MM-dd', 'HH:mm").format(fulldate)
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly) {
-            Text(text = run.place.toString(), modifier = Modifier.fillMaxWidth(0.1f))
-            Text(text = run.runners?.first() ?: "Player",
+            Text(text = run.place.toString(), modifier = Modifier.fillMaxWidth(0.1f), textAlign = TextAlign.Center)
+            Text(text = run.actualRunner?.names?.first() ?: "Player",
                 modifier = Modifier
                     .clickable { /*TODO navigate to runner*/ }
                     .fillMaxWidth(0.4f))
-            //Text(text = run.times.toString())
-            Text(text = run.submitted ?: "Date", modifier = Modifier.fillMaxWidth(0.9f))
+            Text(text = smalldate, modifier = Modifier.fillMaxWidth(0.9f))
             IconButton(onClick = { onPlayClicked(run.videos?.get(0)!!) }, modifier = Modifier.fillMaxWidth(1f)) {
                 Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Video of run")
             }

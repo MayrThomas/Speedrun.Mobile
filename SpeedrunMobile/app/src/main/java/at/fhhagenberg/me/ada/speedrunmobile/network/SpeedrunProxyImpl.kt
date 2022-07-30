@@ -54,10 +54,16 @@ class SpeedrunProxyImpl : SpeedrunProxy {
     override suspend fun getRuns(gameId: String, categoryId: String): MutableCollection<Run>? {
         val leaderboardObject = proxy.getRuns(gameId, categoryId).execute().body() ?: return null
 
-        return leaderboardObject.data?.runs?.map { it.toRun() }?.toMutableList()
+        val list =  leaderboardObject.data?.runs?.map { it.toRun() }?.toMutableList()
+        list?.forEach { run ->
+            run.actualRunner = getRunner(run.runners?.first() ?: "")
+        }
+        return list
     }
 
     override suspend fun getRunner(runnerId: String): Runner? {
+        if(runnerId.equals("")) return null
+
         val userObject = proxy.getRunner(runnerId).execute().body() ?: return null
 
         return userObject.data?.toRunner()!!

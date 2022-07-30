@@ -33,22 +33,6 @@ import kotlinx.coroutines.withContext
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun Home(onGameClicked: (String) -> Unit, viewModel: SMViewModel) {
-    val coroutineScope = rememberCoroutineScope()
-
-    /*val games = remember { mutableStateListOf<Game>() }
-
-    coroutineScope.launch {
-        withContext(Dispatchers.IO) {
-            val proxyGames = SpeedrunProxyFactory.createProxy().getGames(page = 0)
-
-            withContext(Dispatchers.Main) {
-                if (proxyGames != null) {
-                    games.addAll(proxyGames)
-                }
-            }
-        }
-    }*/
-
     Column {
         Spacer(modifier = Modifier.height(16.dp))
         SearchBar(Modifier.padding(horizontal = 16.dp))
