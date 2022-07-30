@@ -35,7 +35,7 @@ import kotlinx.coroutines.withContext
 fun Home(onGameClicked: (String) -> Unit, viewModel: SMViewModel) {
     Column {
         Spacer(modifier = Modifier.height(16.dp))
-        SearchBar(Modifier.padding(horizontal = 16.dp))
+        SearchBar(Modifier.padding(horizontal = 16.dp),viewModel)
 
         GamesBody(modifier = Modifier.padding(top = 16.dp),
             data = viewModel.games,

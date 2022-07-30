@@ -237,7 +237,7 @@ fun BottomNavigationBar(navController: NavHostController) {
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
-    viewModel: SMViewModel = viewModel(),
+    viewModel: SMViewModel,
 ) {
     var value: String by rememberSaveable { mutableStateOf("") }
     TextField(
@@ -281,7 +281,7 @@ fun SearchBar(
 @Composable
 fun SearchBarPreview() {
     SpeedrunMobileTheme {
-        SearchBar()
+        SearchBar(viewModel = viewModel())
     }
 }
 
@@ -289,6 +289,6 @@ fun SearchBarPreview() {
 @Composable
 fun SearchBarPreviewLight() {
     SpeedrunMobileTheme {
-        SearchBar()
+        SearchBar(viewModel = viewModel())
     }
 }

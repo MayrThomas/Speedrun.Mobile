@@ -55,9 +55,9 @@ class SMViewModel : ViewModel() {
 
     fun onGamesSearchEnd(){
         showingSearchResult = false
-        _games.removeRange(0,_games.size)
+        _games.removeAll(_games)
         _games.addAll(_searchBuffer)
-        _searchBuffer.removeRange(0,_searchBuffer.size)
+        _searchBuffer.removeAll(_searchBuffer)
     }
     private val _currentVideo = mutableStateOf("")
     val currentVideo: String get() = _currentVideo.value
