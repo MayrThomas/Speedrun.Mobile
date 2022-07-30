@@ -1,7 +1,11 @@
 package at.fhhagenberg.me.ada.speedrunmobile
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.content.Intent.ACTION_VIEW
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -36,9 +41,12 @@ import kotlinx.coroutines.*
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val context = this.baseContext
+
         setContent {
             SpeedrunMobileTheme {
-                MainScreen()
+                MainScreen(context)
             }
         }
     }
@@ -46,7 +54,7 @@ class MainActivity : ComponentActivity() {
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun MainScreen() {
+fun MainScreen(context: Context) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -64,7 +72,7 @@ fun MainScreen() {
             NavigationHost(navController = navController,
                 drawerState = drawerState,
                 scope = scope,
-                openDrawer = { openDrawer() }, viewModel)
+                openDrawer = { openDrawer() }, viewModel, context)
         },
         bottomBar = { BottomNavigationBar(navController = navController) }
     )
@@ -78,6 +86,7 @@ fun NavigationHost(
     scope: CoroutineScope,
     openDrawer: () -> Unit,
     viewModel: SMViewModel,
+    context: Context
 ) {
     ModalDrawer(
         drawerState = drawerState,
@@ -128,12 +137,8 @@ fun NavigationHost(
 
                 GameScreen(
                     openDrawer = { openDrawer() }, viewModel = viewModel, onPlayClicked = { videoUrl ->
-                        navigateToVideoPlayer(navController, videoUrl, viewModel)
+                        navigateToVideoPlayer(context, videoUrl, viewModel)
                     })
-            }
-
-            composable(NavRoutes.VideoPlayer.route) {
-                VideoPlayer(viewModel)
             }
         }
     }
@@ -151,17 +156,13 @@ private fun navigateToGame(navController: NavHostController, gameID: String, cat
     }
 }
 
-private fun navigateToVideoPlayer(navController: NavHostController, videoUrl: String, viewModel: SMViewModel) {
-    val currentGame = viewModel.currentGame
+private fun navigateToVideoPlayer(context: Context, videoUrl: String, viewModel: SMViewModel) {
     viewModel.onCurrentVideoChange(videoUrl)
 
-    navController.navigate(NavRoutes.VideoPlayer.route) {
-        popUpTo("${NavRoutes.Games.route}/${currentGame.id}/${viewModel.currentCategory}") {
-            saveState = true
-        }
-        launchSingleTop = true
-        restoreState = true
-    }
+    val intent = Intent(ACTION_VIEW)
+    intent.data = Uri.parse(videoUrl)
+    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    startActivity(context, intent, null)
 }
 
 const val PREFERRED_BOTTOM_NAV_HEIGHT = 60
@@ -204,7 +205,7 @@ fun BottomNavigationBar(navController: NavHostController) {
 @Composable
 fun DefaultPreview() {
     SpeedrunMobileTheme {
-        MainScreen()
+        //MainScreen()
     }
 }
 
@@ -212,7 +213,7 @@ fun DefaultPreview() {
 @Composable
 fun DefaultPreviewDark() {
     SpeedrunMobileTheme {
-        MainScreen()
+        //MainScreen()
     }
 }
 
