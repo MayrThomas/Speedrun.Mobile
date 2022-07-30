@@ -64,7 +64,6 @@ class SMViewModel : ViewModel() {
 
 
     fun onCurrentCategoryChanged(newCategoryID: String) {
-        Log.d("GAME","oncurrentcatchagned")
         if (newCategoryID == UNDEFINED_CATEGORY) {
             if (_currentGame.value.categories?.isNotEmpty() == true) {
                 _currentCategory.value =
@@ -78,7 +77,6 @@ class SMViewModel : ViewModel() {
     }
 
     fun onCurrentGameChanged(newGameID: String) {
-        Log.d("GAME","oncurrentgamechagned")
         _currentGame.value = _games.find { it.id.equals(newGameID) } ?: _currentGame.value
     }
 
@@ -104,14 +102,12 @@ class SMViewModel : ViewModel() {
     }
 
     fun updateGames() {
-        Log.d("GAME","updateGames")
         fetchGames(onGamesReceived = { list ->
             _games.addAll(list)
         })
     }
 
     fun updateRuns() {
-        Log.d("GAME","updateRuns")
         _runs.removeAll(_runs)
         fetchRunsToCurrentCategory(onRunsReceived = { list ->
             _runs.addAll(list)

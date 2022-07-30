@@ -31,19 +31,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-val testCategories: List<Category> = listOf(
-    Category(id = "02qr00pk",
-        name = "Any%",
-        rules = "Any% - Reach the credits of the game. \\r\\n\\r\\n* The run stops on credits, not the final cutscene. You must skip the final cutscene before getting your final time. \\r\\n* If you use the save \\u0026 quit mechanic at any point during a run, any delay in loading your character will cause a run to get rejected.\\r\\n\\r\\n##Chinese Translation \\u4e2d\\u6587\\u7ffb\\u8bd1\\r\\nhttps://www.bilibili.com/read/cv15826478"),
-    Category(id = "9kvnee8d",
-        name = "Any% Unrestricted",
-        rules = "Any% Unrestricted - Reach the credits of the game. \\r\\n\\r\\n* The run stops on credits, not the final cutscene. You must skip the final cutscene before getting your final time. \\r\\n* Force quitting the game via Alt+F4 is allowed for executing wrong warps. \\r\\n* Zips are allowed. \\r\\n* If you use the save \\u0026 quit mechanic at any point during a run, any delay in loading your character will cause a run to get rejected.\\r\\n\\r\\n##Chinese Translation \\u4e2d\\u6587\\u7ffb\\u8bd1\\r\\nhttps://www.bilibili.com/read/cv15826478"),
-    Category(id = "mkey0882",
-        name = "Any% No Wrong Warp",
-        rules = "Any% No Wrong Warp - Reach the credits of the game. The use of the wrong warp and \\u0022Pegasus\\u0022 glitches are banned.\\r\\n\\r\\n* The run stops on credits, not the final cutscene. You must skip the final cutscene before getting your final time.\\r\\n* If you use the save \\u0026 quit mechanic at any point during a run, any delay in loading your character will cause a run to get rejected.\\r\\n\\r\\n##Chinese Translation \\u4e2d\\u6587\\u7ffb\\u8bd1\\r\\nhttps://www.bilibili.com/read/cv15826478")
-)
-
-@SuppressLint("CoroutineCreationDuringComposition", "UnrememberedMutableState")
 @Composable
 fun GameScreen(
     openDrawer: () -> Unit,
@@ -57,8 +44,6 @@ fun GameScreen(
         RunsBody(runs = viewModel.runs, Modifier.padding(bottom = PREFERRED_BOTTOM_NAV_HEIGHT.dp), onPlayClicked)
     }
     viewModel.categoryChanged = false
-
-
 }
 
 @Composable
@@ -72,7 +57,7 @@ fun RunsBody(runs: List<Run>, modifier: Modifier = Modifier, onPlayClicked: (Str
     }
 }
 
-@SuppressLint("SimpleDateFormat", "CoroutineCreationDuringComposition")
+@SuppressLint("SimpleDateFormat")
 @Composable
 fun Run(run: Run, onPlayClicked: (String) -> Unit) {
     val color =
@@ -86,7 +71,7 @@ fun Run(run: Run, onPlayClicked: (String) -> Unit) {
             Text(text = run.place.toString(), modifier = Modifier.fillMaxWidth(0.1f), textAlign = TextAlign.Center)
             Text(text = run.actualRunner?.names?.first() ?: "Player",
                 modifier = Modifier
-                    .clickable { /*TODO navigate to runner*/ }
+                    .clickable { }
                     .fillMaxWidth(0.4f))
             Text(text = smalldate, modifier = Modifier.fillMaxWidth(0.9f))
             IconButton(onClick = { onPlayClicked(run.videos?.get(0)!!) }, modifier = Modifier.fillMaxWidth(1f)) {
@@ -155,6 +140,18 @@ fun CategoryNavigationBar(
         elevation = 12.dp
     )
 }
+
+private val testCategories: List<Category> = listOf(
+    Category(id = "02qr00pk",
+        name = "Any%",
+        rules = "Any% - Reach the credits of the game. \\r\\n\\r\\n* The run stops on credits, not the final cutscene. You must skip the final cutscene before getting your final time. \\r\\n* If you use the save \\u0026 quit mechanic at any point during a run, any delay in loading your character will cause a run to get rejected.\\r\\n\\r\\n##Chinese Translation \\u4e2d\\u6587\\u7ffb\\u8bd1\\r\\nhttps://www.bilibili.com/read/cv15826478"),
+    Category(id = "9kvnee8d",
+        name = "Any% Unrestricted",
+        rules = "Any% Unrestricted - Reach the credits of the game. \\r\\n\\r\\n* The run stops on credits, not the final cutscene. You must skip the final cutscene before getting your final time. \\r\\n* Force quitting the game via Alt+F4 is allowed for executing wrong warps. \\r\\n* Zips are allowed. \\r\\n* If you use the save \\u0026 quit mechanic at any point during a run, any delay in loading your character will cause a run to get rejected.\\r\\n\\r\\n##Chinese Translation \\u4e2d\\u6587\\u7ffb\\u8bd1\\r\\nhttps://www.bilibili.com/read/cv15826478"),
+    Category(id = "mkey0882",
+        name = "Any% No Wrong Warp",
+        rules = "Any% No Wrong Warp - Reach the credits of the game. The use of the wrong warp and \\u0022Pegasus\\u0022 glitches are banned.\\r\\n\\r\\n* The run stops on credits, not the final cutscene. You must skip the final cutscene before getting your final time.\\r\\n* If you use the save \\u0026 quit mechanic at any point during a run, any delay in loading your character will cause a run to get rejected.\\r\\n\\r\\n##Chinese Translation \\u4e2d\\u6587\\u7ffb\\u8bd1\\r\\nhttps://www.bilibili.com/read/cv15826478")
+)
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable

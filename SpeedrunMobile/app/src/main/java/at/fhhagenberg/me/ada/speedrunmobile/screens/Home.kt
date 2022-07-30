@@ -30,7 +30,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun Home(onGameClicked: (String) -> Unit, viewModel: SMViewModel) {
     Column {

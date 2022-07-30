@@ -56,7 +56,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
@@ -82,7 +81,6 @@ fun MainScreen() {
     )
 }
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun NavigationHost(
     navController: NavHostController,
@@ -102,7 +100,6 @@ fun NavigationHost(
                     scope.launch {
                         drawerState.close()
                     }
-                    //viewModel.onCurrentCategoryChanged(category)
                     navigateToGame(navController,
                         game,
                         category,

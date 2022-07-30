@@ -25,7 +25,7 @@ class SpeedrunProxyImpl : SpeedrunProxy {
             it.toGame()
         }?.toMutableList()
 
-        gamesList?.forEach {
+        gamesList?.forEach { it ->
             val categories = proxy.getCategoriesOfGame(it.id).execute().body()
             if (categories != null) {
                 it.categories = categories.data?.map {
@@ -62,15 +62,13 @@ class SpeedrunProxyImpl : SpeedrunProxy {
     }
 
     override suspend fun getRunner(runnerId: String): Runner? {
-        if(runnerId.equals("")) return null
+        if(runnerId == "") return null
 
         val userObject = proxy.getRunner(runnerId).execute().body() ?: return null
 
         return userObject.data?.toRunner()!!
     }
 
-
-    //TODO("change return value of network calls to objects that contain a list of the actual type")
     private interface Proxy {
         @GET("games")
         fun getGames(
